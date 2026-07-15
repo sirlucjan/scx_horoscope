@@ -240,9 +240,10 @@ fn to_astro_date(dt: &DateTime<Utc>) -> time::Date {
         time_zone: 0.0,
     };
 
-    // NOTE: the git HEAD of astro-rust (unpinned dependency) changed `Date.month`
-    // from `u8` to an enum `Month`. Verify variant names against your local checkout:
-    //   find ~/.cargo/git/checkouts -path "*astro-rust*/src/time.rs" -exec grep -n -A15 "enum Month" {} \;
+    // `time::Date::month` is `astro::time::Month`, not a `u8` (its variants happen to
+    // have discriminants 1-12, matching `chrono`'s `month()`, but relying on that via
+    // `mem::transmute` is unsound: the compiler gives no guarantee that an arbitrary
+    // integer bit pattern corresponds to a valid enum variant). Map explicitly instead.
     let month = match dt.month() {
         1 => time::Month::Jan,
         2 => time::Month::Feb,

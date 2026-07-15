@@ -20,7 +20,7 @@ libc = "0.2"
 plain = "0.2.3"
 
 # Astronomy and astrology
-astro = { git = "https://github.com/saurvs/astro-rust" }
+astro = { git = "https://github.com/saurvs/astro-rust", rev = "c62ffdc7d55adfa1ee835fc7006d42d967bc4836" }
 chrono = "0.4"
 
 # CLI and configuration

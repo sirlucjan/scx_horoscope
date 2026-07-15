@@ -94,7 +94,7 @@ dependencies = [
 [[package]]
 name = "astro"
 version = "2.0.0"
-source = "git+https://github.com/saurvs/astro-rust#c62ffdc7d55adfa1ee835fc7006d42d967bc4836"
+source = "git+https://github.com/saurvs/astro-rust?rev=c62ffdc7d55adfa1ee835fc7006d42d967bc4836#c62ffdc7d55adfa1ee835fc7006d42d967bc4836"
 
 [[package]]
 name = "autocfg"

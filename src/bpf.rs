@@ -600,3 +600,22 @@ impl Drop for BpfScheduler<'_> {
         ALLOCATOR.unlock_memory();
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // BUFSIZE is derived from `queued_task_ctx` (the BPF-side wire struct), while
+    // ring-buffer entries are decoded into `QueuedTask` (the hand-written Rust
+    // mirror) via `EnqueuedMessage::to_queued_task()`. Guard against the two
+    // drifting apart (e.g. a field added on one side but not the other), which
+    // would otherwise silently under/over-size the ring buffer.
+    #[test]
+    fn queued_task_wire_size_matches_bpf_struct() {
+        assert_eq!(
+            size_of::<QueuedTask>(),
+            size_of::<queued_task_ctx>(),
+            "QueuedTask (Rust) and queued_task_ctx (BPF) must stay layout-compatible"
+        );
+    }
+}
