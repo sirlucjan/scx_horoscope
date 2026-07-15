@@ -9,9 +9,9 @@ repository = "https://github.com/zampierilucas/scx_horoscope"
 
 [dependencies]
 # sched_ext framework
-scx_utils = "1.0"
-scx_stats = "1.0"
-scx_stats_derive = "1.0"
+scx_utils = "1.1.2"
+scx_stats = "1.1.2"
+scx_stats_derive = "1.1.2"
 scx_rustland_core = "2.4"
 
 # BPF and system interaction
@@ -41,8 +41,8 @@ ctrlc = "3.4"
 procfs = "0.18"
 
 [build-dependencies]
-scx_utils = "1.0"
-scx_rustland_core = "2.4"
+scx_utils = "1.1.2"
+scx_rustland_core = "2.4.13"
 
 [dev-dependencies]
 # For testing
