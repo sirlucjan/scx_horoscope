@@ -85,6 +85,7 @@ impl<'a> Scheduler<'a> {
             false,        // partial
             opts.verbose, // debugt
             true,         // builtin_idle
+            true,         // numa_local
             slice_ns,     // default time slice
             "horoscope",  // scx ops name
         )?;

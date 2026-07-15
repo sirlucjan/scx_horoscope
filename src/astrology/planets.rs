@@ -240,8 +240,24 @@ fn to_astro_date(dt: &DateTime<Utc>) -> time::Date {
         time_zone: 0.0,
     };
 
-    // Safety: time::Month variants are explicitly valued 1-12, matching chrono's month()
-    let month: time::Month = unsafe { std::mem::transmute(dt.month() as u8) };
+    // NOTE: the git HEAD of astro-rust (unpinned dependency) changed `Date.month`
+    // from `u8` to an enum `Month`. Verify variant names against your local checkout:
+    //   find ~/.cargo/git/checkouts -path "*astro-rust*/src/time.rs" -exec grep -n -A15 "enum Month" {} \;
+    let month = match dt.month() {
+        1 => time::Month::Jan,
+        2 => time::Month::Feb,
+        3 => time::Month::Mar,
+        4 => time::Month::Apr,
+        5 => time::Month::May,
+        6 => time::Month::June,
+        7 => time::Month::July,
+        8 => time::Month::Aug,
+        9 => time::Month::Sept,
+        10 => time::Month::Oct,
+        11 => time::Month::Nov,
+        12 => time::Month::Dec,
+        other => unreachable!("chrono month() is always 1-12, got {other}"),
+    };
 
     time::Date {
         year: dt.year() as i16,
