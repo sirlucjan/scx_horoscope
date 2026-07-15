@@ -4,14 +4,14 @@ use std::collections::HashMap;
 /// Task type classification based on astrological domains
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TaskType {
-    Network,        // Mercury - Communication
-    CpuIntensive,   // Mars - Energy/Action
-    Desktop,        // Venus - Harmony/UI
-    MemoryHeavy,    // Jupiter - Expansion
-    System,         // Saturn - Structure
-    Interactive,    // Moon - Emotions/Cycles
-    #[allow(dead_code)]  // Never returned by classify(), only used in is_critical() check
-    Critical,       // Sun - Life Force (only for PID 1/init)
+    Network,      // Mercury - Communication
+    CpuIntensive, // Mars - Energy/Action
+    Desktop,      // Venus - Harmony/UI
+    MemoryHeavy,  // Jupiter - Expansion
+    System,       // Saturn - Structure
+    Interactive,  // Moon - Emotions/Cycles
+    #[allow(dead_code)] // Never returned by classify(), only used in is_critical() check
+    Critical, // Sun - Life Force (only for PID 1/init)
 }
 
 impl TaskType {
@@ -51,55 +51,164 @@ impl TaskClassifier {
         let mut patterns = HashMap::new();
 
         for pattern in &[
-            "ssh", "sshd", "curl", "wget", "transmission", "discord", "slack",
-            "teams", "zoom", "thunderbird", "evolution", "networkmanager",
-            "dhcpcd", "wpa_supplicant", "nginx", "apache", "httpd", "node",
-            "npm", "deno",
+            "ssh",
+            "sshd",
+            "curl",
+            "wget",
+            "transmission",
+            "discord",
+            "slack",
+            "teams",
+            "zoom",
+            "thunderbird",
+            "evolution",
+            "networkmanager",
+            "dhcpcd",
+            "wpa_supplicant",
+            "nginx",
+            "apache",
+            "httpd",
+            "node",
+            "npm",
+            "deno",
         ] {
             patterns.insert((*pattern).to_string(), TaskType::Network);
         }
 
         for pattern in &[
-            "cc1", "rustc", "make", "cargo", "gcc", "clang", "g++", "ld",
-            "as", "ffmpeg", "blender", "gimp", "inkscape", "handbrake",
-            "x264", "x265", "vpxenc", "tar", "gzip", "bzip2", "xz", "zip",
-            "7z", "convert", "montage",
+            "cc1",
+            "rustc",
+            "make",
+            "cargo",
+            "gcc",
+            "clang",
+            "g++",
+            "ld",
+            "as",
+            "ffmpeg",
+            "blender",
+            "gimp",
+            "inkscape",
+            "handbrake",
+            "x264",
+            "x265",
+            "vpxenc",
+            "tar",
+            "gzip",
+            "bzip2",
+            "xz",
+            "zip",
+            "7z",
+            "convert",
+            "montage",
         ] {
             patterns.insert((*pattern).to_string(), TaskType::CpuIntensive);
         }
 
         for pattern in &[
-            "gnome-shell", "kde", "plasma", "kwin", "xorg", "wayland",
-            "pulseaudio", "pipewire", "mutter", "compiz", "enlightenment",
-            "xfce4", "lxde", "mate-panel", "cinnamon", "budgie", "polybar",
-            "waybar", "dunst", "mako", "rofi", "dmenu",
+            "gnome-shell",
+            "kde",
+            "plasma",
+            "kwin",
+            "xorg",
+            "wayland",
+            "pulseaudio",
+            "pipewire",
+            "mutter",
+            "compiz",
+            "enlightenment",
+            "xfce4",
+            "lxde",
+            "mate-panel",
+            "cinnamon",
+            "budgie",
+            "polybar",
+            "waybar",
+            "dunst",
+            "mako",
+            "rofi",
+            "dmenu",
         ] {
             patterns.insert((*pattern).to_string(), TaskType::Desktop);
         }
 
         for pattern in &[
-            "postgres", "postgresql", "mysql", "mariadb", "redis", "memcached",
-            "mongodb", "cassandra", "elasticsearch", "java", "electron",
-            "idea", "pycharm", "studio", "vscode", "code", "docker",
-            "containerd", "qemu", "virtualbox",
+            "postgres",
+            "postgresql",
+            "mysql",
+            "mariadb",
+            "redis",
+            "memcached",
+            "mongodb",
+            "cassandra",
+            "elasticsearch",
+            "java",
+            "electron",
+            "idea",
+            "pycharm",
+            "studio",
+            "vscode",
+            "code",
+            "docker",
+            "containerd",
+            "qemu",
+            "virtualbox",
         ] {
             patterns.insert((*pattern).to_string(), TaskType::MemoryHeavy);
         }
 
         for pattern in &[
-            "systemd", "init", "kworker", "kswapd", "kthreadd", "ksoftirqd",
-            "migration", "rcu", "watchdog", "irqbalance", "systemd-journald",
-            "systemd-udevd", "systemd-logind", "dbus-daemon", "accounts-daemon",
-            "polkitd", "rtkit-daemon", "udisksd", "upowerd",
+            "systemd",
+            "init",
+            "kworker",
+            "kswapd",
+            "kthreadd",
+            "ksoftirqd",
+            "migration",
+            "rcu",
+            "watchdog",
+            "irqbalance",
+            "systemd-journald",
+            "systemd-udevd",
+            "systemd-logind",
+            "dbus-daemon",
+            "accounts-daemon",
+            "polkitd",
+            "rtkit-daemon",
+            "udisksd",
+            "upowerd",
         ] {
             patterns.insert((*pattern).to_string(), TaskType::System);
         }
 
         for pattern in &[
-            "bash", "zsh", "fish", "sh", "vim", "nvim", "emacs", "nano",
-            "less", "more", "cat", "grep", "awk", "sed", "tmux", "screen",
-            "htop", "top", "btop", "glances", "alacritty", "kitty", "konsole",
-            "gnome-terminal", "terminator", "yakuake", "st",
+            "bash",
+            "zsh",
+            "fish",
+            "sh",
+            "vim",
+            "nvim",
+            "emacs",
+            "nano",
+            "less",
+            "more",
+            "cat",
+            "grep",
+            "awk",
+            "sed",
+            "tmux",
+            "screen",
+            "htop",
+            "top",
+            "btop",
+            "glances",
+            "alacritty",
+            "kitty",
+            "konsole",
+            "gnome-terminal",
+            "terminator",
+            "yakuake",
+            "st",
         ] {
             patterns.insert((*pattern).to_string(), TaskType::Interactive);
         }
@@ -203,7 +312,10 @@ mod tests {
     fn test_task_classification_default() {
         let classifier = TaskClassifier::new();
 
-        assert_eq!(classifier.classify("unknown_process"), TaskType::Interactive);
+        assert_eq!(
+            classifier.classify("unknown_process"),
+            TaskType::Interactive
+        );
         assert_eq!(classifier.classify("my_custom_app"), TaskType::Interactive);
     }
 

@@ -1,7 +1,9 @@
-use super::planets::{Planet, Element, PlanetaryPosition, MoonPhase, calculate_planetary_positions_with_zodiac};
 #[cfg(test)]
 use super::planets::calculate_planetary_positions;
-use super::tasks::{TaskType, TaskClassifier};
+use super::planets::{
+    calculate_planetary_positions_with_zodiac, Element, MoonPhase, Planet, PlanetaryPosition,
+};
+use super::tasks::{TaskClassifier, TaskType};
 use chrono::{DateTime, Utc};
 
 /// Scheduling decision with astrological reasoning
@@ -9,9 +11,9 @@ use chrono::{DateTime, Utc};
 pub struct SchedulingDecision {
     pub priority: u32,
     pub reasoning: String,
-    pub planetary_influence: f64,  // -1.0 to 1.0
-    #[allow(dead_code)]  // Used internally in calculations, not accessed externally
-    pub element_boost: f64,         // Multiplier (includes moon phase for Interactive tasks)
+    pub planetary_influence: f64, // -1.0 to 1.0
+    #[allow(dead_code)] // Used internally in calculations, not accessed externally
+    pub element_boost: f64, // Multiplier (includes moon phase for Interactive tasks)
 }
 
 /// The main astrological scheduler
@@ -19,7 +21,7 @@ pub struct AstrologicalScheduler {
     classifier: TaskClassifier,
     planetary_cache: Option<(DateTime<Utc>, Vec<PlanetaryPosition>)>,
     cache_duration_secs: i64,
-    use_13_signs: bool,  // Use 13-sign zodiac with Ophiuchus (IAU boundaries)
+    use_13_signs: bool, // Use 13-sign zodiac with Ophiuchus (IAU boundaries)
 }
 
 impl AstrologicalScheduler {
@@ -37,7 +39,7 @@ impl AstrologicalScheduler {
     }
 
     /// Returns whether the 13-sign zodiac (with Ophiuchus) is enabled
-    #[allow(dead_code)]  // Public API
+    #[allow(dead_code)] // Public API
     pub fn uses_13_signs(&self) -> bool {
         self.use_13_signs
     }
@@ -93,7 +95,8 @@ impl AstrologicalScheduler {
     fn calculate_element_boost(positions: &[PlanetaryPosition], task_type: TaskType) -> f64 {
         let ruling_planet = task_type.ruling_planet();
 
-        let planet_pos = positions.iter()
+        let planet_pos = positions
+            .iter()
             .find(|p| p.planet == ruling_planet)
             .expect("Ruling planet should always be present");
 
@@ -104,7 +107,8 @@ impl AstrologicalScheduler {
             // Perfect matches - BOOSTED
             (Element::Fire, TaskType::CpuIntensive) | (Element::Air, TaskType::Network) => 1.5,
             (Element::Earth, TaskType::System) => 1.4,
-            (Element::Water, TaskType::MemoryHeavy) | (Element::Air | Element::Water, TaskType::Desktop) => 1.3,
+            (Element::Water, TaskType::MemoryHeavy)
+            | (Element::Air | Element::Water, TaskType::Desktop) => 1.3,
 
             // Opposing elements - DEBUFFED (Fire opposes Water, Earth opposes Air)
             (Element::Water, TaskType::CpuIntensive) | (Element::Earth, TaskType::Network) => 0.6,
@@ -135,7 +139,8 @@ impl AstrologicalScheduler {
 
         let positions = self.get_planetary_positions(now);
 
-        let planet_pos = positions.iter()
+        let planet_pos = positions
+            .iter()
             .find(|p| p.planet == ruling_planet)
             .expect("Ruling planet should always be present");
 
@@ -170,12 +175,8 @@ impl AstrologicalScheduler {
             result
         };
 
-        let reasoning = Self::create_reasoning(
-            task_type,
-            planet_pos,
-            planetary_influence,
-            element_boost,
-        );
+        let reasoning =
+            Self::create_reasoning(task_type, planet_pos, planetary_influence, element_boost);
 
         SchedulingDecision {
             priority: influenced_priority.max(1),
@@ -257,7 +258,11 @@ impl AstrologicalScheduler {
         use std::fmt::Write;
 
         let mut report = String::from("🌌 COSMIC WEATHER REPORT 🌌\n");
-        let _ = writeln!(report, "Current time: {}", now.format("%Y-%m-%d %H:%M:%S UTC"));
+        let _ = writeln!(
+            report,
+            "Current time: {}",
+            now.format("%Y-%m-%d %H:%M:%S UTC")
+        );
         if self.use_13_signs {
             report.push_str("Zodiac system: 13-sign (IAU boundaries with Ophiuchus)\n");
         } else {
@@ -286,9 +291,7 @@ impl AstrologicalScheduler {
         }
 
         // Calculate element counts first for tension detection
-        let elements: Vec<_> = positions.iter()
-            .map(|p| p.sign.element())
-            .collect();
+        let elements: Vec<_> = positions.iter().map(|p| p.sign.element()).collect();
 
         let fire_count = elements.iter().filter(|&&e| e == Element::Fire).count();
         let earth_count = elements.iter().filter(|&&e| e == Element::Earth).count();
@@ -301,12 +304,20 @@ impl AstrologicalScheduler {
         report.push_str("\n💫 ASTROLOGICAL GUIDANCE 💫\n\n");
 
         // Helper to generate status for each task type
-        let task_status = |planet: Planet, ideal: Element, opposed: Element, clash: bool,
-                          boosted_msg: &str, contested_msg: &str, debuffed_msg: &str| -> String {
+        let task_status = |planet: Planet,
+                           ideal: Element,
+                           opposed: Element,
+                           clash: bool,
+                           boosted_msg: &str,
+                           contested_msg: &str,
+                           debuffed_msg: &str|
+         -> String {
             let pos = positions.iter().find(|p| p.planet == planet).unwrap();
             let element = pos.sign.element();
             match element {
-                e if e == ideal && clash => format!("⚔️ BOOSTED but CONTESTED ⚔️ - {contested_msg}"),
+                e if e == ideal && clash => {
+                    format!("⚔️ BOOSTED but CONTESTED ⚔️ - {contested_msg}")
+                }
                 e if e == ideal => format!("✨ BOOSTED ✨ - {boosted_msg}"),
                 e if e == opposed => format!("⚠️  DEBUFFED ⚠️  - {debuffed_msg}"),
                 _ => "Neutral - Normal operations".to_string(),
@@ -314,42 +325,89 @@ impl AstrologicalScheduler {
         };
 
         let mars_pos = positions.iter().find(|p| p.planet == Planet::Mars).unwrap();
-        let _ = writeln!(report, "🔥 CPU-Intensive Tasks (Mars in {}): {}",
+        let _ = writeln!(
+            report,
+            "🔥 CPU-Intensive Tasks (Mars in {}): {}",
             mars_pos.sign.name(),
-            task_status(Planet::Mars, Element::Fire, Element::Water, fire_water_clash,
+            task_status(
+                Planet::Mars,
+                Element::Fire,
+                Element::Water,
+                fire_water_clash,
                 "Compilations and calculations favored!",
                 "Fire powers CPU but Water planets oppose!",
-                "Water dampens the CPU fires!"));
+                "Water dampens the CPU fires!"
+            )
+        );
 
-        let merc_pos = positions.iter().find(|p| p.planet == Planet::Mercury).unwrap();
-        let _ = writeln!(report, "💬 Network Tasks (Mercury in {}): {}",
+        let merc_pos = positions
+            .iter()
+            .find(|p| p.planet == Planet::Mercury)
+            .unwrap();
+        let _ = writeln!(
+            report,
+            "💬 Network Tasks (Mercury in {}): {}",
             merc_pos.sign.name(),
-            task_status(Planet::Mercury, Element::Air, Element::Earth, earth_air_clash,
+            task_status(
+                Planet::Mercury,
+                Element::Air,
+                Element::Earth,
+                earth_air_clash,
                 "Network communications flow freely!",
                 "Air speeds networks but Earth planets oppose!",
-                "Earth blocks network packets!"));
+                "Earth blocks network packets!"
+            )
+        );
 
-        let jup_pos = positions.iter().find(|p| p.planet == Planet::Jupiter).unwrap();
-        let _ = writeln!(report, "💾 Memory-Heavy Tasks (Jupiter in {}): {}",
+        let jup_pos = positions
+            .iter()
+            .find(|p| p.planet == Planet::Jupiter)
+            .unwrap();
+        let _ = writeln!(
+            report,
+            "💾 Memory-Heavy Tasks (Jupiter in {}): {}",
             jup_pos.sign.name(),
-            task_status(Planet::Jupiter, Element::Water, Element::Fire, fire_water_clash,
+            task_status(
+                Planet::Jupiter,
+                Element::Water,
+                Element::Fire,
+                fire_water_clash,
                 "Databases and caches optimized!",
                 "Water fills memory but Fire planets oppose!",
-                "Fire evaporates memory pools!"));
+                "Fire evaporates memory pools!"
+            )
+        );
 
-        let sat_pos = positions.iter().find(|p| p.planet == Planet::Saturn).unwrap();
-        let _ = writeln!(report, "⚙️  System Tasks (Saturn in {}): {}",
+        let sat_pos = positions
+            .iter()
+            .find(|p| p.planet == Planet::Saturn)
+            .unwrap();
+        let _ = writeln!(
+            report,
+            "⚙️  System Tasks (Saturn in {}): {}",
             sat_pos.sign.name(),
-            task_status(Planet::Saturn, Element::Earth, Element::Air, earth_air_clash,
+            task_status(
+                Planet::Saturn,
+                Element::Earth,
+                Element::Air,
+                earth_air_clash,
                 "System operations rock solid!",
                 "Earth stabilizes systems but Air planets oppose!",
-                "Air disrupts system stability!"));
+                "Air disrupts system stability!"
+            )
+        );
 
         // Element summary
         report.push_str("\n📊 Elemental Balance:\n");
 
-        let _ = writeln!(report, "   Fire (CPU): {fire_count} planets | Earth (Stability): {earth_count} planets");
-        let _ = writeln!(report, "   Air (Network): {air_count} planets | Water (Memory): {water_count} planets");
+        let _ = writeln!(
+            report,
+            "   Fire (CPU): {fire_count} planets | Earth (Stability): {earth_count} planets"
+        );
+        let _ = writeln!(
+            report,
+            "   Air (Network): {air_count} planets | Water (Memory): {water_count} planets"
+        );
 
         // Check for elemental conflicts
         report.push_str("\n⚔️  Cosmic Tensions:\n");
@@ -437,7 +495,6 @@ mod tests {
         assert_eq!(cached_time, still_cached_time);
     }
 
-
     #[test]
     fn test_cosmic_weather_report() {
         let mut scheduler = AstrologicalScheduler::new(300);
@@ -457,8 +514,10 @@ mod tests {
         let positions = calculate_planetary_positions(now);
 
         // Test that boosts are calculated
-        let cpu_boost = AstrologicalScheduler::calculate_element_boost(&positions, TaskType::CpuIntensive);
-        let net_boost = AstrologicalScheduler::calculate_element_boost(&positions, TaskType::Network);
+        let cpu_boost =
+            AstrologicalScheduler::calculate_element_boost(&positions, TaskType::CpuIntensive);
+        let net_boost =
+            AstrologicalScheduler::calculate_element_boost(&positions, TaskType::Network);
 
         assert!(cpu_boost > 0.0);
         assert!(net_boost > 0.0);
@@ -474,11 +533,24 @@ mod tests {
 
             if pos.retrograde {
                 // Retrograde planets have negative influence
-                assert_eq!(influence, -1.0, "{} is retrograde and should have -1.0 influence", pos.planet.name());
+                assert_eq!(
+                    influence,
+                    -1.0,
+                    "{} is retrograde and should have -1.0 influence",
+                    pos.planet.name()
+                );
             } else {
                 // Direct planets have positive influence based on element
-                assert!(influence > 0.0, "{} is direct and should have positive influence", pos.planet.name());
-                assert!(influence >= 1.0 && influence <= 1.3, "{} influence should be between 1.0 and 1.3", pos.planet.name());
+                assert!(
+                    influence > 0.0,
+                    "{} is direct and should have positive influence",
+                    pos.planet.name()
+                );
+                assert!(
+                    influence >= 1.0 && influence <= 1.3,
+                    "{} influence should be between 1.0 and 1.3",
+                    pos.planet.name()
+                );
             }
         }
     }

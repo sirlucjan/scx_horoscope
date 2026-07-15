@@ -1,11 +1,13 @@
 pub mod planets;
-pub mod tasks;
 pub mod scheduler;
+pub mod tasks;
 
 // Public API re-exports for external use
 #[allow(unused_imports)]
-pub use planets::{Planet, ZodiacSign, Element, PlanetaryPosition, MoonPhase, calculate_planetary_positions};
-#[allow(unused_imports)]
-pub use tasks::{TaskType, TaskClassifier};
+pub use planets::{
+    calculate_planetary_positions, Element, MoonPhase, Planet, PlanetaryPosition, ZodiacSign,
+};
 #[allow(unused_imports)]
 pub use scheduler::{AstrologicalScheduler, SchedulingDecision};
+#[allow(unused_imports)]
+pub use tasks::{TaskClassifier, TaskType};

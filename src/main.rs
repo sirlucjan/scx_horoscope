@@ -19,10 +19,10 @@ use anyhow::Result;
 use chrono::Utc;
 use clap::Parser;
 use libbpf_rs::OpenObject;
-use log::{info, debug, error};
+use log::{debug, error, info};
 use scx_utils::libbpf_clap_opts::LibbpfOpts;
 use scx_utils::UserExitInfo;
-use simplelog::{Config, LevelFilter, TermLogger, TerminalMode, ColorChoice};
+use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
 use std::mem::MaybeUninit;
 use std::time::SystemTime;
 
@@ -90,10 +90,16 @@ impl<'a> Scheduler<'a> {
         )?;
 
         #[allow(clippy::cast_possible_wrap)]
-        let astro = AstrologicalScheduler::with_options(opts.update_interval as i64, opts.ophiuchus);
+        let astro =
+            AstrologicalScheduler::with_options(opts.update_interval as i64, opts.ophiuchus);
         let last_update = Self::now();
 
-        Ok(Self { bpf, astro, opts, last_update })
+        Ok(Self {
+            bpf,
+            astro,
+            opts,
+            last_update,
+        })
     }
 
     fn now() -> u64 {
@@ -154,7 +160,11 @@ impl<'a> Scheduler<'a> {
 
                     // Apply retrograde penalty if enabled
                     if !self.opts.no_retrograde && decision.planetary_influence < 0.0 {
-                        #[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+                        #[allow(
+                            clippy::cast_precision_loss,
+                            clippy::cast_possible_truncation,
+                            clippy::cast_sign_loss
+                        )]
                         let penalized = (dispatched_task.slice_ns as f64 * 0.5) as u64;
                         dispatched_task.slice_ns = penalized;
                     }
@@ -163,10 +173,7 @@ impl<'a> Scheduler<'a> {
                         let slice_microseconds = dispatched_task.slice_ns / 1000;
                         debug!(
                             "[PID {}] {} | Priority: {} | Slice: {slice_microseconds}μs | {}",
-                            task.pid,
-                            comm,
-                            decision.priority,
-                            decision.reasoning
+                            task.pid, comm, decision.priority, decision.reasoning
                         );
                     }
 
@@ -215,9 +222,26 @@ impl<'a> Scheduler<'a> {
         info!("Scheduler configuration:");
         info!("  Default time slice: {}μs", self.opts.slice_us);
         info!("  Min time slice: {}μs", self.opts.slice_us_min);
-        info!("  Planetary update interval: {}s", self.opts.update_interval);
-        info!("  Retrograde effects: {}", if self.opts.no_retrograde { "DISABLED" } else { "ENABLED" });
-        info!("  Zodiac system: {}", if self.opts.ophiuchus { "13-sign (with Ophiuchus)" } else { "Traditional 12-sign" });
+        info!(
+            "  Planetary update interval: {}s",
+            self.opts.update_interval
+        );
+        info!(
+            "  Retrograde effects: {}",
+            if self.opts.no_retrograde {
+                "DISABLED"
+            } else {
+                "ENABLED"
+            }
+        );
+        info!(
+            "  Zodiac system: {}",
+            if self.opts.ophiuchus {
+                "13-sign (with Ophiuchus)"
+            } else {
+                "Traditional 12-sign"
+            }
+        );
 
         while !self.bpf.exited() {
             self.dispatch_tasks();

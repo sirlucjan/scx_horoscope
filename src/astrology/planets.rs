@@ -1,9 +1,9 @@
-use chrono::{DateTime, Utc, Datelike, Timelike};
-use astro::time;
-use astro::planet;
-use astro::lunar;
-use astro::sun;
 use astro::angle;
+use astro::lunar;
+use astro::planet;
+use astro::sun;
+use astro::time;
+use chrono::{DateTime, Datelike, Timelike, Utc};
 
 /// Represents the planets we care about for scheduling
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -122,7 +122,9 @@ impl ZodiacSign {
                 return sign;
             }
         }
-        boundaries.last().map_or(ZodiacSign::Aries, |&(_, sign)| sign)
+        boundaries
+            .last()
+            .map_or(ZodiacSign::Aries, |&(_, sign)| sign)
     }
 
     pub fn name(self) -> &'static str {
@@ -145,7 +147,10 @@ impl ZodiacSign {
 
     pub fn element(self) -> Element {
         match self {
-            ZodiacSign::Aries | ZodiacSign::Leo | ZodiacSign::Sagittarius | ZodiacSign::Ophiuchus => Element::Fire,
+            ZodiacSign::Aries
+            | ZodiacSign::Leo
+            | ZodiacSign::Sagittarius
+            | ZodiacSign::Ophiuchus => Element::Fire,
             ZodiacSign::Taurus | ZodiacSign::Virgo | ZodiacSign::Capricorn => Element::Earth,
             ZodiacSign::Gemini | ZodiacSign::Libra | ZodiacSign::Aquarius => Element::Air,
             ZodiacSign::Cancer | ZodiacSign::Scorpio | ZodiacSign::Pisces => Element::Water,
@@ -155,10 +160,10 @@ impl ZodiacSign {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Element {
-    Fire,   // Energy, CPU
-    Earth,  // Stability, Long-running
-    Air,    // Communication, Network
-    Water,  // Fluidity, Storage/DB
+    Fire,  // Energy, CPU
+    Earth, // Stability, Long-running
+    Air,   // Communication, Network
+    Water, // Fluidity, Storage/DB
 }
 
 impl Element {
@@ -219,10 +224,10 @@ impl MoonPhase {
 #[derive(Debug, Clone)]
 pub struct PlanetaryPosition {
     pub planet: Planet,
-    pub longitude: f64,  // Ecliptic longitude in degrees
+    pub longitude: f64, // Ecliptic longitude in degrees
     pub sign: ZodiacSign,
-    pub retrograde: bool,  // True if planet is in retrograde motion
-    pub moon_phase: Option<MoonPhase>,  // Only for Moon - affects Interactive task scheduling
+    pub retrograde: bool,              // True if planet is in retrograde motion
+    pub moon_phase: Option<MoonPhase>, // Only for Moon - affects Interactive task scheduling
 }
 
 /// Convert chrono `DateTime` to astro crate's Date
@@ -263,23 +268,26 @@ fn is_retrograde(astro_planet: &planet::Planet, jd_today: f64) -> bool {
     // If delta is large and positive (>180), planet crossed 360° going backward
     // If delta is negative and small (>-180), planet is moving backward normally
     if delta > 180.0 {
-        true  // Crossed 360° while retrograde (e.g., 359° -> 1°)
+        true // Crossed 360° while retrograde (e.g., 359° -> 1°)
     } else if delta < -180.0 {
-        false  // Crossed 360° while direct (e.g., 1° -> 359°)
+        false // Crossed 360° while direct (e.g., 1° -> 359°)
     } else {
-        delta < 0.0  // Normal case: negative delta means retrograde
+        delta < 0.0 // Normal case: negative delta means retrograde
     }
 }
 
 /// Calculate planetary positions with retrograde detection (traditional 12-sign zodiac)
 /// This is a convenience wrapper for `calculate_planetary_positions_with_zodiac(dt, false)`.
-#[allow(dead_code)]  // Public API convenience wrapper
+#[allow(dead_code)] // Public API convenience wrapper
 pub fn calculate_planetary_positions(dt: DateTime<Utc>) -> Vec<PlanetaryPosition> {
     calculate_planetary_positions_with_zodiac(dt, false)
 }
 
 /// Calculate planetary positions with configurable zodiac system
-pub fn calculate_planetary_positions_with_zodiac(dt: DateTime<Utc>, use_13_signs: bool) -> Vec<PlanetaryPosition> {
+pub fn calculate_planetary_positions_with_zodiac(
+    dt: DateTime<Utc>,
+    use_13_signs: bool,
+) -> Vec<PlanetaryPosition> {
     let date = to_astro_date(&dt);
     let jd = time::julian_day(&date);
 
@@ -369,7 +377,6 @@ pub fn calculate_planetary_positions_with_zodiac(dt: DateTime<Utc>, use_13_signs
     positions
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -381,8 +388,14 @@ mod tests {
         assert_eq!(ZodiacSign::from_longitude(0.0, false), ZodiacSign::Aries);
         assert_eq!(ZodiacSign::from_longitude(30.0, false), ZodiacSign::Taurus);
         assert_eq!(ZodiacSign::from_longitude(60.0, false), ZodiacSign::Gemini);
-        assert_eq!(ZodiacSign::from_longitude(210.0, false), ZodiacSign::Scorpio);
-        assert_eq!(ZodiacSign::from_longitude(240.0, false), ZodiacSign::Sagittarius);
+        assert_eq!(
+            ZodiacSign::from_longitude(210.0, false),
+            ZodiacSign::Scorpio
+        );
+        assert_eq!(
+            ZodiacSign::from_longitude(240.0, false),
+            ZodiacSign::Sagittarius
+        );
         assert_eq!(ZodiacSign::from_longitude(330.0, false), ZodiacSign::Pisces);
         assert_eq!(ZodiacSign::from_longitude(360.0, false), ZodiacSign::Aries);
         assert_eq!(ZodiacSign::from_longitude(390.0, false), ZodiacSign::Taurus);
@@ -391,18 +404,27 @@ mod tests {
     #[test]
     fn test_zodiac_from_longitude_13_signs() {
         // Test IAU constellation boundaries (13-sign zodiac with Ophiuchus)
-        assert_eq!(ZodiacSign::from_longitude(0.0, true), ZodiacSign::Pisces);    // 0° is in Pisces
-        assert_eq!(ZodiacSign::from_longitude(29.0, true), ZodiacSign::Aries);    // Aries starts at 29°
+        assert_eq!(ZodiacSign::from_longitude(0.0, true), ZodiacSign::Pisces); // 0° is in Pisces
+        assert_eq!(ZodiacSign::from_longitude(29.0, true), ZodiacSign::Aries); // Aries starts at 29°
         assert_eq!(ZodiacSign::from_longitude(40.0, true), ZodiacSign::Aries);
-        assert_eq!(ZodiacSign::from_longitude(53.5, true), ZodiacSign::Taurus);   // Taurus starts at 53.5°
+        assert_eq!(ZodiacSign::from_longitude(53.5, true), ZodiacSign::Taurus); // Taurus starts at 53.5°
         assert_eq!(ZodiacSign::from_longitude(100.0, true), ZodiacSign::Gemini);
         assert_eq!(ZodiacSign::from_longitude(241.0, true), ZodiacSign::Scorpio); // Scorpio starts at 241°
-        assert_eq!(ZodiacSign::from_longitude(248.0, true), ZodiacSign::Ophiuchus); // Ophiuchus starts at 248°
-        assert_eq!(ZodiacSign::from_longitude(255.0, true), ZodiacSign::Ophiuchus);
-        assert_eq!(ZodiacSign::from_longitude(266.0, true), ZodiacSign::Sagittarius); // Sagittarius at 266°
-        assert_eq!(ZodiacSign::from_longitude(351.5, true), ZodiacSign::Pisces);  // Pisces starts at 351.5°
-        assert_eq!(ZodiacSign::from_longitude(360.0, true), ZodiacSign::Pisces);  // Wraps to 0°
-        assert_eq!(ZodiacSign::from_longitude(389.0, true), ZodiacSign::Aries);   // 389° = 29° (Aries)
+        assert_eq!(
+            ZodiacSign::from_longitude(248.0, true),
+            ZodiacSign::Ophiuchus
+        ); // Ophiuchus starts at 248°
+        assert_eq!(
+            ZodiacSign::from_longitude(255.0, true),
+            ZodiacSign::Ophiuchus
+        );
+        assert_eq!(
+            ZodiacSign::from_longitude(266.0, true),
+            ZodiacSign::Sagittarius
+        ); // Sagittarius at 266°
+        assert_eq!(ZodiacSign::from_longitude(351.5, true), ZodiacSign::Pisces); // Pisces starts at 351.5°
+        assert_eq!(ZodiacSign::from_longitude(360.0, true), ZodiacSign::Pisces); // Wraps to 0°
+        assert_eq!(ZodiacSign::from_longitude(389.0, true), ZodiacSign::Aries); // 389° = 29° (Aries)
     }
 
     #[test]
@@ -452,11 +474,14 @@ mod tests {
         assert!(planet_names.contains(&Planet::Saturn));
 
         for pos in &positions {
-            assert!(pos.longitude >= 0.0 && pos.longitude < 360.0,
-                    "Planet {:?} longitude {} out of range", pos.planet, pos.longitude);
+            assert!(
+                pos.longitude >= 0.0 && pos.longitude < 360.0,
+                "Planet {:?} longitude {} out of range",
+                pos.planet,
+                pos.longitude
+            );
         }
     }
-
 
     #[test]
     fn test_planet_domains() {
@@ -479,20 +504,34 @@ mod tests {
         // Saturn: 25°14' Pisces (330° + 25.23° = ~355.2°)
         // Moon: 13°00' Scorpio (210° + 13° = ~223°)
         for pos in &positions {
-            println!("{:?} at {:.1}° in {:?}", pos.planet, pos.longitude, pos.sign);
+            println!(
+                "{:?} at {:.1}° in {:?}",
+                pos.planet, pos.longitude, pos.sign
+            );
             match pos.planet {
                 Planet::Sun => {
                     assert_eq!(pos.sign, ZodiacSign::Scorpio, "Sun should be in Scorpio");
-                    assert!(pos.longitude >= 210.0 && pos.longitude < 240.0, "Sun longitude out of expected range");
+                    assert!(
+                        pos.longitude >= 210.0 && pos.longitude < 240.0,
+                        "Sun longitude out of expected range"
+                    );
                 }
                 Planet::Mercury => {
-                    assert_eq!(pos.sign, ZodiacSign::Scorpio, "Mercury should be in Scorpio");
+                    assert_eq!(
+                        pos.sign,
+                        ZodiacSign::Scorpio,
+                        "Mercury should be in Scorpio"
+                    );
                 }
                 Planet::Venus => {
                     assert_eq!(pos.sign, ZodiacSign::Scorpio, "Venus should be in Scorpio");
                 }
                 Planet::Mars => {
-                    assert_eq!(pos.sign, ZodiacSign::Sagittarius, "Mars should be in Sagittarius");
+                    assert_eq!(
+                        pos.sign,
+                        ZodiacSign::Sagittarius,
+                        "Mars should be in Sagittarius"
+                    );
                 }
                 Planet::Jupiter => {
                     assert_eq!(pos.sign, ZodiacSign::Cancer, "Jupiter should be in Cancer");
@@ -516,25 +555,48 @@ mod tests {
         // Many "Scorpio" positions fall in Libra because IAU Scorpio is only ~7° wide (241-248°)
         // Mars at ~250.5° is in Ophiuchus (248-266°)
         for pos in &positions {
-            println!("{:?} at {:.1}° in {:?} (13-sign)", pos.planet, pos.longitude, pos.sign);
+            println!(
+                "{:?} at {:.1}° in {:?} (13-sign)",
+                pos.planet, pos.longitude, pos.sign
+            );
             match pos.planet {
                 Planet::Sun => {
                     assert_eq!(pos.sign, ZodiacSign::Libra, "Sun should be in Libra (IAU)");
                 }
                 Planet::Mercury => {
-                    assert_eq!(pos.sign, ZodiacSign::Libra, "Mercury should be in Libra (IAU)");
+                    assert_eq!(
+                        pos.sign,
+                        ZodiacSign::Libra,
+                        "Mercury should be in Libra (IAU)"
+                    );
                 }
                 Planet::Venus => {
-                    assert_eq!(pos.sign, ZodiacSign::Libra, "Venus should be in Libra (IAU)");
+                    assert_eq!(
+                        pos.sign,
+                        ZodiacSign::Libra,
+                        "Venus should be in Libra (IAU)"
+                    );
                 }
                 Planet::Mars => {
-                    assert_eq!(pos.sign, ZodiacSign::Ophiuchus, "Mars should be in Ophiuchus (IAU)");
+                    assert_eq!(
+                        pos.sign,
+                        ZodiacSign::Ophiuchus,
+                        "Mars should be in Ophiuchus (IAU)"
+                    );
                 }
                 Planet::Jupiter => {
-                    assert_eq!(pos.sign, ZodiacSign::Gemini, "Jupiter should be in Gemini (IAU)");
+                    assert_eq!(
+                        pos.sign,
+                        ZodiacSign::Gemini,
+                        "Jupiter should be in Gemini (IAU)"
+                    );
                 }
                 Planet::Saturn => {
-                    assert_eq!(pos.sign, ZodiacSign::Pisces, "Saturn should be in Pisces (IAU)");
+                    assert_eq!(
+                        pos.sign,
+                        ZodiacSign::Pisces,
+                        "Saturn should be in Pisces (IAU)"
+                    );
                 }
                 Planet::Moon => {
                     assert_eq!(pos.sign, ZodiacSign::Libra, "Moon should be in Libra (IAU)");
