@@ -64,6 +64,11 @@ struct Opts {
     /// By default, uses traditional 12-sign tropical zodiac
     #[clap(long)]
     ophiuchus: bool,
+
+    /// Prefer NUMA-local idle CPUs when selecting a CPU for a task
+    /// (requires kernel support for per-node idle cpumask kfuncs)
+    #[clap(long)]
+    numa_local: bool,
 }
 
 struct Scheduler<'a> {
@@ -81,13 +86,13 @@ impl<'a> Scheduler<'a> {
         let bpf = BpfScheduler::init(
             open_object,
             open_opts.clone().into_bpf_open_opts(),
-            0,            // exit_dump_len
-            false,        // partial
-            opts.verbose, // debugt
-            true,         // builtin_idle
-            true,         // numa_local
-            slice_ns,     // default time slice
-            "horoscope",  // scx ops name
+            0,               // exit_dump_len
+            false,           // partial
+            opts.verbose,    // debugt
+            true,            // builtin_idle
+            opts.numa_local, // numa_local
+            slice_ns,        // default time slice
+            "horoscope",     // scx ops name
         )?;
 
         #[allow(clippy::cast_possible_wrap)]
@@ -241,6 +246,14 @@ impl<'a> Scheduler<'a> {
                 "13-sign (with Ophiuchus)"
             } else {
                 "Traditional 12-sign"
+            }
+        );
+        info!(
+            "  NUMA-local CPU selection: {}",
+            if self.opts.numa_local {
+                "ENABLED"
+            } else {
+                "DISABLED"
             }
         );
 
