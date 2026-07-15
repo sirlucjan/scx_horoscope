@@ -15,7 +15,7 @@ scx_stats_derive = "1.1.2"
 scx_rustland_core = "2.4"
 
 # BPF and system interaction
-libbpf-rs = "0.26.2"
+libbpf-rs = "=0.26.2"
 libc = "0.2"
 plain = "0.2.3"
 
